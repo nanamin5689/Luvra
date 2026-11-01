@@ -1,0 +1,1132 @@
+<!doctype html>
+<html lang="my">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0d12">
+<title>OpenVideo</title>
+<meta name="description" content="Snap post၊ ဗီဒီယို၊ ရယ်စရာ camera template၊ Chat တစ်နေရာတည်းတွင်။">
+<style>
+:root{--bg:#0b0d12;--sf:#151922;--sf2:#1d2330;--tx:#eef1f6;--mu:#98a2b3;--ac:#6c8cff;--ac2:#ff5fa2;--ok:#34d399;--bd:#242b39;--nav:56px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font-family:system-ui,"Noto Sans Myanmar","Padauk",sans-serif;overscroll-behavior:none}
+#app{height:100dvh;max-width:560px;margin:0 auto;display:flex;flex-direction:column;position:relative;background:var(--bg)}
+button{font-family:inherit;color:inherit;border:0;background:none;cursor:pointer;padding:0}
+input,select,textarea{font-family:inherit;font-size:1rem;color:var(--tx);background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:11px 13px;width:100%}
+a{color:var(--ac)}
+.btn{background:var(--ac);color:#fff;border-radius:12px;padding:10px 16px;font-size:.92rem;font-weight:600}
+.btn.alt{background:var(--sf2)}
+.btn.pink{background:linear-gradient(135deg,var(--ac),var(--ac2))}
+.btn:disabled{opacity:.5}
+.ellip{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row-between{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.tip{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:9px 12px;font-size:.8rem;color:var(--mu);line-height:1.55;margin:0 0 12px}
+
+/* top bar */
+#top{display:flex;align-items:center;padding-top:env(safe-area-inset-top);border-bottom:1px solid var(--bd);background:var(--bg);position:relative;z-index:5}
+#cats{flex:1;display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x proximity;padding:10px 12px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+#cats::-webkit-scrollbar{display:none}
+.cat{flex:0 0 auto;scroll-snap-align:center;padding:7px 15px;border-radius:99px;background:var(--sf);color:var(--mu);font-size:.9rem;white-space:nowrap}
+.cat.on{background:var(--tx);color:#0b0d12;font-weight:700}
+#srchBtn{flex:0 0 auto;width:42px;height:42px;margin:0 8px 0 2px;border-radius:50%;background:var(--sf);display:grid;place-items:center;box-shadow:-14px 0 14px 4px var(--bg)}
+#srchBtn svg{width:20px;height:20px}
+
+/* views */
+#main{flex:1;position:relative;min-height:0}
+.view{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.pad{padding:12px 12px 24px}
+.msg{text-align:center;color:var(--mu);padding:36px 12px;line-height:1.7}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:16px;padding:16px;margin:0 0 12px}
+.card h3{margin:0 0 6px;font-size:1rem}
+.card p{margin:6px 0;color:var(--mu);line-height:1.6;font-size:.88rem}
+.sec{margin:16px 0 8px;color:var(--mu);font-size:.82rem;font-weight:700}
+
+/* avatar */
+.av{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--ac),var(--ac2));display:grid;place-items:center;font-weight:700;flex:0 0 auto;overflow:hidden;color:#fff}
+.av img{width:100%;height:100%;object-fit:cover;display:block}
+
+/* post */
+.post{background:var(--sf);border:1px solid var(--bd);border-radius:18px;margin:0 0 14px;overflow:hidden}
+.ph{display:flex;align-items:center;gap:10px;padding:10px 12px}
+.pm{flex:1;min-width:0}
+.pm b{display:block;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pm small{color:var(--mu);font-size:.76rem}
+.fbtn{padding:6px 12px;border-radius:99px;border:1px solid var(--ac);color:var(--ac);font-size:.8rem;font-weight:600}
+.fbtn.on{background:var(--sf2);border-color:var(--bd);color:var(--mu)}
+.ibtn{width:34px;height:34px;border-radius:50%;background:var(--sf2);font-size:1rem;display:grid;place-items:center}
+.dots{padding:6px 8px;color:var(--mu);font-size:1.2rem;line-height:1}
+.post .media{width:100%;max-height:70vh;object-fit:contain;background:#000;display:block}
+.cap{margin:0;padding:10px 14px 4px;line-height:1.55;font-size:.95rem}
+.rx{display:flex;gap:6px;padding:8px 10px 12px;flex-wrap:wrap}
+.rb{display:flex;align-items:center;gap:4px;padding:5px 9px;border-radius:99px;background:var(--sf2);border:1px solid transparent;font-size:.8rem;color:var(--mu);user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.rb .re{font-size:1.15rem;line-height:1;display:inline-block}
+.rb.me{border-color:var(--ac);color:var(--tx);background:#222b45}
+.rb.pop .re{animation:pop .28s ease}
+@keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.7) rotate(-8deg)}100%{transform:scale(1)}}
+
+/* video grid */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.vc{background:var(--sf);border-radius:14px;overflow:hidden;text-align:left;display:block;width:100%}
+.vc .th{width:100%;aspect-ratio:16/10;object-fit:cover;display:block;background:#222}
+.vc .b{padding:8px 10px 10px}
+.vc h4{margin:0 0 3px;font-size:.84rem;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-weight:600}
+.vc small{color:var(--mu);font-size:.72rem}
+.more{display:block;margin:16px auto 0}
+
+/* bottom nav – slim */
+#nav{display:flex;height:calc(var(--nav) + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);background:rgba(15,18,26,.97);border-top:1px solid var(--bd);backdrop-filter:blur(10px)}
+#nav button{flex:1;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#6b7587;font-size:.62rem}
+#nav svg{width:22px;height:22px}
+#nav button.on{color:var(--tx)}
+#nav button.on svg{color:var(--ac)}
+#nav button.on::before{content:"";position:absolute;top:0;width:22px;height:2px;border-radius:2px;background:var(--ac)}
+#nav .cam{font-size:0}
+#nav .cam::before{display:none}
+#nav .cam .ring{width:42px;height:42px;border-radius:50%;margin-top:-16px;background:linear-gradient(135deg,var(--ac),var(--ac2));display:grid;place-items:center;border:4px solid #0f121a;box-shadow:0 4px 14px rgba(108,140,255,.35)}
+#nav .cam svg{width:20px;height:20px;color:#fff}
+.badge{position:absolute;top:5px;left:calc(50% + 4px);min-width:16px;height:16px;padding:0 4px;border-radius:99px;background:#ef4444;color:#fff;font-size:.62rem;display:grid;place-items:center;font-weight:700}
+
+/* overlays */
+.ov{position:fixed;inset:0;background:var(--bg);z-index:30;display:flex;flex-direction:column;max-width:560px;margin:0 auto}
+.ovh{display:flex;align-items:center;gap:10px;padding:calc(10px + env(safe-area-inset-top)) 12px 10px;border-bottom:1px solid var(--bd)}
+.ovh h2{flex:1;margin:0;font-size:1rem;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.x{width:36px;height:36px;border-radius:50%;background:var(--sf);font-size:1rem;flex:0 0 auto}
+.ovb{flex:1;overflow-y:auto;padding:12px}
+.player{width:100%;aspect-ratio:16/9;border:0;background:#000;display:block;border-radius:12px}
+.info p{color:var(--mu);font-size:.88rem;line-height:1.6;margin:8px 0}
+.hrow{display:flex;gap:12px;align-items:center;width:100%;text-align:left;background:var(--sf);border-radius:14px;padding:10px;margin-bottom:10px}
+.hrow img.t,.hrow .ph0{width:96px;aspect-ratio:16/10;object-fit:cover;border-radius:8px;background:#222;flex:0 0 auto}
+.hrow b{display:block;font-size:.9rem;line-height:1.35}
+.hrow small{color:var(--mu);font-size:.76rem}
+#toast{position:fixed;left:50%;bottom:calc(var(--nav) + 24px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#fff;color:#111;padding:10px 16px;border-radius:99px;font-size:.88rem;z-index:60;max-width:90vw;text-align:center}
+
+/* chat thread */
+.bubbles{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.bb{max-width:78%;padding:9px 12px;border-radius:18px;background:var(--sf2);align-self:flex-start;line-height:1.45;word-break:break-word}
+.bb.me{align-self:flex-end;background:linear-gradient(135deg,#4d6bff,#8a5bff);color:#fff}
+.bb small{display:block;font-size:.66rem;opacity:.65;margin-top:3px}
+.composer{display:flex;gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--bd);background:var(--bg)}
+.composer input{flex:1;border-radius:99px}
+.composer .btn{border-radius:99px}
+
+/* profile */
+.cover{height:150px;background:linear-gradient(135deg,#2a3a7a,#7a2a6a);background-size:cover;background-position:center;position:relative}
+.cedit{position:absolute;right:10px;bottom:10px;background:rgba(0,0,0,.55);padding:6px 11px;border-radius:99px;font-size:.78rem}
+.pavw{position:relative;width:96px;height:96px;margin:-48px 0 0 14px}
+.pavw .av{width:96px;height:96px;font-size:2.2rem;border:4px solid var(--bg)}
+.pavw .aedit{position:absolute;right:-2px;bottom:2px;width:30px;height:30px;border-radius:50%;background:var(--sf2);border:2px solid var(--bg);display:grid;place-items:center;font-size:.85rem}
+.pname{padding:8px 14px 0}
+.pname h2{margin:0;font-size:1.3rem}
+.pname p{margin:4px 0 0;color:var(--mu);font-size:.88rem}
+.stats{display:flex;gap:10px;padding:12px 14px}
+.stats div{flex:1;background:var(--sf);border:1px solid var(--bd);border-radius:14px;text-align:center;padding:10px 4px}
+.stats b{display:block;font-size:1.1rem}
+.stats small{color:var(--mu);font-size:.72rem}
+.big{font-size:2rem;font-weight:800}
+.kv{display:flex;justify-content:space-between;gap:10px;font-size:.85rem;color:var(--mu);padding:5px 0;border-bottom:1px solid var(--bd)}
+.kv:last-child{border-bottom:0}
+.refbox{display:flex;gap:8px;margin-top:8px}
+.refbox input{font-size:.8rem}
+
+/* camera */
+#v-camera{display:flex;flex-direction:column;overflow:hidden;background:#000}
+.stage{flex:1;min-height:0;position:relative;overflow:hidden;background:#000}
+#cv{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;touch-action:none;background:#111}
+.hint{position:absolute;top:calc(10px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);padding:6px 12px;border-radius:99px;font-size:.78rem;pointer-events:none;white-space:nowrap}
+.chip{position:absolute;top:calc(10px + env(safe-area-inset-top));left:10px;background:rgba(0,0,0,.6);padding:6px 11px;border-radius:99px;font-size:.82rem;font-weight:700}
+.timer{position:absolute;top:calc(44px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:#e11d48;padding:3px 10px;border-radius:99px;font-size:.8rem;font-weight:700}
+.tools{background:var(--bg);padding:8px 10px 6px}
+.tpls{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px;scrollbar-width:none}
+.tpls::-webkit-scrollbar{display:none}
+.tp{flex:0 0 auto;width:62px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--mu);font-size:.66rem}
+.tp i{font-style:normal;width:46px;height:46px;border-radius:14px;background:var(--sf);display:grid;place-items:center;font-size:1.4rem;border:2px solid transparent}
+.tp.on i{border-color:var(--ac2)}
+.tp.on{color:var(--tx)}
+.sl{display:flex;gap:10px}
+.sl label{flex:1;font-size:.7rem;color:var(--mu);display:flex;flex-direction:column;gap:2px}
+.sl input{padding:0;border:0;background:none;height:22px}
+#capt{padding:8px 12px;margin:4px 0 6px;font-size:.9rem}
+.shut{display:flex;align-items:center;justify-content:space-around;padding:2px 0 4px}
+.sbtn{width:46px;height:46px;border-radius:50%;background:var(--sf);font-size:1.2rem}
+#shutw{display:flex;flex-direction:column;align-items:center;gap:3px}
+#cost{font-size:.7rem;color:var(--mu)}
+#shut{width:66px;height:66px;border-radius:50%;border:4px solid #fff;background:none;position:relative}
+#shut::after{content:"";position:absolute;inset:5px;border-radius:50%;background:#fff;transition:.15s}
+#shut.vid::after{background:#ef4444}
+#shut.rec::after{inset:17px;border-radius:8px;background:#ef4444}
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="top">
+    <div id="cats" role="tablist" aria-label="အမျိုးအစားများ"></div>
+    <button id="srchBtn" aria-label="ရှာဖွေရန်">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
+    </button>
+  </header>
+
+  <main id="main">
+    <section class="view" id="v-home"><div class="pad"><div id="feed"></div><button class="btn alt more" id="hmore" hidden>ထပ်ကြည့်မည်</button></div></section>
+    <section class="view" id="v-video" hidden><div class="pad"><div class="tip" id="vtip"></div><div class="grid" id="vgrid"></div><div id="vstat" class="msg"></div><button class="btn alt more" id="vmore" hidden>ထပ်ကြည့်မည်</button></div></section>
+    <section class="view" id="v-camera" hidden>
+      <div id="camGate" class="pad" hidden></div>
+      <div id="camUI" style="display:flex;flex-direction:column;flex:1;min-height:0">
+        <div class="stage">
+          <canvas id="cv" width="720" height="1280"></canvas>
+          <div class="chip" id="bal">⭐ 0</div>
+          <div class="hint" id="camHint">မျက်နှာပေါ်ကို ထိ/ဆွဲပြီး effect နေရာချပါ</div>
+          <div class="timer" id="timer" hidden>● 0:00</div>
+        </div>
+        <div class="tools">
+          <div class="tpls" id="tpls"></div>
+          <div class="sl">
+            <label>အရွယ်အစား<input type="range" id="sz" min="0.08" max="0.36" step="0.01" value="0.2"></label>
+            <label>အားပြင်း<input type="range" id="st" min="0.1" max="1.6" step="0.05" value="0.8"></label>
+          </div>
+          <input id="capt" placeholder="စာတန်း (meme) ထည့်ရန်…" maxlength="40">
+          <div class="shut">
+            <button class="sbtn" id="modeBtn" aria-label="ပုံ/ဗီဒီယို ပြောင်းရန်">📷</button>
+            <div id="shutw"><button id="shut" aria-label="ရိုက်ရန်"></button><span id="cost">⭐ −3</span></div>
+            <button class="sbtn" id="flip" aria-label="ကင်မရာလှည့်ရန်">🔄</button>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="view" id="v-chat" hidden><div class="pad" id="chat"></div></section>
+    <section class="view" id="v-profile" hidden><div id="prof"></div></section>
+  </main>
+
+  <nav id="nav" aria-label="ပင်မမီနူး"></nav>
+</div>
+<div id="toast" hidden></div>
+<div id="layer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script>
+"use strict";
+const C = window.CONFIG || {};
+const $ = s => document.querySelector(s);
+const sb = (C.SUPABASE_URL && C.SUPABASE_ANON_KEY && window.supabase)
+  ? supabase.createClient(C.SUPABASE_URL, C.SUPABASE_ANON_KEY) : null;
+const PER = 12;
+// setup.sql ထဲက တန်ဖိုးများနှင့် တူရမည်
+const COST = {image: 3, video: 8};
+const WATCH_SECS = 30;
+const CHAT_TTL = 10;
+
+/* ---------- helpers ---------- */
+function h(tag, attrs, ...kids){
+  const e = document.createElement(tag);
+  for(const k in (attrs || {})){
+    const v = attrs[k];
+    if(v == null || v === false) continue;
+    if(k === "class") e.className = v;
+    else if(k.startsWith("on")) e.addEventListener(k.slice(2), v);
+    else if(k === "svg") e.innerHTML = v;        // static icon markup only
+    else e.setAttribute(k, v === true ? "" : v);
+  }
+  kids.flat().forEach(c => { if(c == null || c === false) return; e.append(c.nodeType ? c : document.createTextNode(c)); });
+  return e;
+}
+const lsGet = k => { try{ return localStorage.getItem(k); }catch(e){ return null; } };
+const lsSet = (k, v) => { try{ localStorage.setItem(k, v); }catch(e){} };
+const lsDel = k => { try{ localStorage.removeItem(k); }catch(e){} };
+const jget = (k, d) => { try{ const v = JSON.parse(lsGet(k) || "null"); return v == null ? d : v; }catch(e){ return d; } };
+let toastT;
+function toast(m){ const t = $("#toast"); t.textContent = m; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 2800); }
+function ago(ts){
+  const m = Math.max(1, Math.round((Date.now() - new Date(ts)) / 60000));
+  if(m < 60) return m + " မိနစ်က";
+  const hr = Math.round(m / 60);
+  return hr < 24 ? hr + " နာရီက" : Math.round(hr / 24) + " ရက်က";
+}
+function left(p){
+  const m = Math.round((new Date(p.expires_at) - Date.now()) / 60000);
+  if(m <= 0) return "သက်တမ်းကုန်ပြီ";
+  return m < 60 ? m + " မိနစ် ကျန်" : Math.floor(m / 60) + " နာရီ ကျန်";
+}
+const leftMin = m => Math.max(0, Math.ceil((new Date(m.expires_at) - Date.now()) / 60000)) + " မိနစ်";
+const fmt = n => n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(/\.0$/, "") + "k" : String(n);
+function avatar(url, name, size){
+  const a = h("div", {class:"av", style: size ? `width:${size}px;height:${size}px;font-size:${Math.round(size * .42)}px` : null});
+  if(url){ const i = h("img", {alt:"", loading:"lazy", src:url}); i.onerror = () => { i.remove(); a.textContent = (name || "?").slice(0, 1).toUpperCase(); }; a.append(i); }
+  else a.textContent = (name || "?").slice(0, 1).toUpperCase();
+  return a;
+}
+
+/* ---------- state ---------- */
+let user = null, prof = null, balance = 0, tab = "home", cat = "foryou";
+let following = new Set();
+const CATS = [["foryou","သင့်အတွက်"],["following","Following"],["nature","သဘာဝ"],["city","မြို့"],
+  ["animals","တိရစ္ဆာန်"],["food","အစားအစာ"],["travel","ခရီး"],["technology","နည်းပညာ"],["people","လူများ"],["sports","အားကစား"]];
+const CAT_Q = {nature:"nature",city:"city",animals:"animals",food:"food",travel:"travel",technology:"technology",people:"people",sports:"sports"};
+const REACT = [["like","👍"],["love","❤️"],["laugh","😂"],["wow","😮"],["sad","😢"],["angry","😡"]];
+
+const ICON = {
+  home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M4 10.5 12 4l8 6.5V19a1 1 0 0 1-1 1h-4.5v-5.5h-5V20H5a1 1 0 0 1-1-1z"/></svg>',
+  video:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><rect x="3.5" y="5.5" width="17" height="13" rx="3.2"/><path d="m10.6 9.6 3.6 2.4-3.6 2.4z" fill="currentColor"/></svg>',
+  camera:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" stroke-linecap="round"><path d="M4 8.5A1.5 1.5 0 0 1 5.5 7h2.2l1.2-1.8h6.2L16.3 7h2.2A1.5 1.5 0 0 1 20 8.5v8.8a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.3z"/><circle cx="12" cy="12.8" r="3.2"/></svg>',
+  chat:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M5.5 5h13A2.5 2.5 0 0 1 21 7.5v7a2.5 2.5 0 0 1-2.5 2.5H12l-4.5 3.5V17h-2A2.5 2.5 0 0 1 3 14.5v-7A2.5 2.5 0 0 1 5.5 5z"/></svg>',
+  user:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c.8-3.5 3.6-5.3 7-5.3s6.2 1.8 7 5.3"/></svg>'
+};
+const NAV = [["home","ပင်မ",ICON.home],["video","ဗီဒီယို",ICON.video],["camera","ကင်မရာ",ICON.camera],["chat","Chat",ICON.chat],["profile","ကျွန်ုပ်",ICON.user]];
+let badgeN = 0;
+function applyBadge(){ const b = document.querySelector("#nav .badge"); if(!b) return; b.textContent = badgeN > 9 ? "9+" : badgeN; b.hidden = !badgeN; }
+function drawNav(){
+  const nav = $("#nav"); nav.replaceChildren();
+  NAV.forEach(([id, label, svg]) => {
+    const b = h("button", {class: (id === tab ? "on " : "") + (id === "camera" ? "cam" : ""), "aria-label": label, onclick: () => go(id)});
+    if(id === "camera") b.append(h("span", {class:"ring", svg}));
+    else b.append(h("span", {svg}), label);
+    if(id === "chat") b.append(h("span", {class:"badge", hidden:true}));
+    nav.append(b);
+  });
+  applyBadge();
+}
+function drawCats(){
+  const box = $("#cats"); box.replaceChildren();
+  CATS.filter(c => !(tab === "video" && c[0] === "following")).forEach(([id, label]) => {
+    box.append(h("button", {class:"cat" + (id === cat ? " on" : ""), role:"tab", "data-id":id, onclick:() => { cat = id; drawCats(); refresh(); }}, label));
+  });
+  const on = box.querySelector(".on"); if(on && on.scrollIntoView) on.scrollIntoView({inline:"center", block:"nearest"});
+}
+function refresh(){ if(tab === "home") loadHome(true); else if(tab === "video") loadVideos(true); }
+let convoT = null;
+function renderTab(){
+  if(tab === "home") loadHome(true);
+  else if(tab === "video") loadVideos(true);
+  else if(tab === "camera") camOpen();
+  else if(tab === "chat") drawChat();
+  else if(tab === "profile") drawProfile();
+}
+function go(t){
+  if(tab === "camera" && t !== "camera") camStop();
+  if(tab === "chat" && t !== "chat"){ clearInterval(convoT); }
+  tab = t;
+  document.querySelectorAll(".view").forEach(v => v.hidden = v.id !== "v-" + t);
+  $("#top").hidden = !(t === "home" || t === "video");
+  if(t === "video" && cat === "following") cat = "foryou";
+  drawNav(); drawCats(); renderTab();
+}
+
+/* ---------- referral link ဖမ်းယူ ---------- */
+(function(){
+  try{
+    const r = new URLSearchParams(location.search).get("ref");
+    if(r){ lsSet("ov_ref", r.trim().toLowerCase().slice(0, 16)); history.replaceState(null, "", location.pathname + location.hash); }
+  }catch(e){}
+})();
+
+/* ---------- auth / profile / points ---------- */
+const uname = () => (prof && prof.username) || (user && ((user.user_metadata && user.user_metadata.username) || (user.email || "").split("@")[0])) || "user";
+async function loadFollowing(){
+  following = new Set();
+  if(!sb || !user) return;
+  const {data} = await sb.from("follows").select("followee_id");
+  (data || []).forEach(r => following.add(r.followee_id));
+}
+async function loadProfile(){
+  if(!sb || !user) return;
+  const {data} = await sb.from("profiles").select("*").eq("id", user.id).maybeSingle();
+  prof = data || null;
+}
+function setBal(){ const b = $("#bal"); if(b) b.textContent = "⭐ " + balance; }
+async function loadWallet(){
+  if(!sb || !user) return;
+  const {data} = await sb.from("wallets").select("balance").eq("user_id", user.id).maybeSingle();
+  balance = data ? data.balance : 0; setBal();
+}
+async function afterLogin(){
+  try{
+    await sb.rpc("ensure_profile");
+    const ref = lsGet("ov_ref");
+    if(ref){
+      const {data, error} = await sb.rpc("claim_referral", {p_code: ref});
+      if(!error){ lsDel("ov_ref"); if(data === "ok") toast("Referral အောင်မြင်ပါသည်! ⭐ +20"); }
+    }
+    await Promise.all([loadProfile(), loadWallet(), loadFollowing()]);
+    startBadge();
+  }catch(e){ console.error(e); }
+}
+function afterLogout(){ prof = null; balance = 0; following = new Set(); stopBadge(); setBal(); }
+let lastUid, authFirst = true;
+function onUser(u){
+  const uid = u ? u.id : null; user = u;
+  if(authFirst){ authFirst = false; if(!u){ lastUid = null; return; } }
+  if(uid === lastUid) return;
+  lastUid = uid;
+  (async () => { if(u) await afterLogin(); else afterLogout(); renderTab(); })();
+}
+if(sb){
+  sb.auth.getSession().then(({data}) => onUser(data.session ? data.session.user : null));
+  sb.auth.onAuthStateChange((_e, s) => onUser(s ? s.user : null));
+}
+function loginCard(why){
+  const em = h("input", {type:"email", placeholder:"you@email.com", autocomplete:"email"});
+  const msg = h("p", {}, "");
+  const send = h("button", {class:"btn pink", onclick: async () => {
+    if(!sb){ msg.textContent = "Supabase ကို config.js တွင် မချိတ်ရသေးပါ။"; return; }
+    if(!em.value.trim()) return;
+    send.disabled = true; msg.textContent = "ပို့နေသည်…";
+    const {error} = await sb.auth.signInWithOtp({email: em.value.trim(), options:{emailRedirectTo: location.href.split("#")[0].split("?")[0]}});
+    msg.textContent = error ? "မအောင်မြင်ပါ - " + error.message : "Email ကို စစ်ပါ။ Login link ကိုနှိပ်ပြီး ဤ app သို့ ပြန်လာပါ။";
+    send.disabled = false;
+  }}, "Login link ပို့မည်");
+  const refNote = lsGet("ov_ref") ? h("p", {}, "🎁 Referral code `" + lsGet("ov_ref") + "` ကို မှတ်ထားပြီး ဝင်ပြီးသည်နှင့် ⭐ +20 ရပါမည်။") : null;
+  return h("div", {class:"card"}, h("h3", {}, "အကောင့်ဝင်ရန်"), h("p", {}, why), refNote, h("div", {style:"display:grid;gap:10px;margin-top:10px"}, em, send), msg);
+}
+function plainCard(t, p){ return h("div", {class:"card"}, h("h3", {}, t), h("p", {}, p)); }
+
+/* ---------- overlays ---------- */
+function overlay(title, body, onClose){
+  const o = h("div", {class:"ov"},
+    h("div", {class:"ovh"}, h("h2", {}, title), h("button", {class:"x", "aria-label":"ပိတ်မည်", onclick: () => o.close()}, "✕")),
+    h("div", {class:"ovb"}, body));
+  o.close = () => { o.remove(); if(onClose) onClose(); };
+  $("#layer").append(o); return o;
+}
+
+/* ---------- HOME (snap posts) ---------- */
+let hOff = 0, hBusy = false;
+async function loadHome(reset){
+  const box = $("#feed");
+  if(!sb){
+    box.replaceChildren(h("div", {class:"card"}, h("h3", {}, "Supabase မချိတ်ရသေးပါ"),
+      h("p", {}, "Post များ တင်/ကြည့်နိုင်ရန် config.js တွင် Supabase URL နှင့် key ဖြည့်ပြီး setup.sql ကို run ပါ။ (README ကိုကြည့်ပါ)"),
+      h("button", {class:"btn alt", onclick: () => go("video")}, "ဗီဒီယိုများ ကြည့်မည်")));
+    $("#hmore").hidden = true; return;
+  }
+  if(hBusy) return; hBusy = true;
+  try{
+    if(reset){ hOff = 0; box.replaceChildren(h("div", {class:"msg"}, "ဖွင့်နေသည်…")); }
+    let q = sb.from("posts").select("*").gt("expires_at", new Date().toISOString())
+      .order("created_at", {ascending:false}).range(hOff, hOff + PER - 1);
+    if(cat === "following"){
+      if(!user){ box.replaceChildren(loginCard("Follow လုပ်ထားသူများ၏ post များကြည့်ရန် အကောင့်ဝင်ပါ။")); $("#hmore").hidden = true; return; }
+      if(!following.size){ box.replaceChildren(h("div", {class:"msg"}, "ဘယ်သူ့ကိုမှ Follow မလုပ်ရသေးပါ။ “သင့်အတွက်” ထဲက post များမှ Follow လုပ်ကြည့်ပါ။")); $("#hmore").hidden = true; return; }
+      q = q.in("user_id", [...following]);
+    } else if(cat !== "foryou") q = q.eq("category", cat);
+    const {data, error} = await q;
+    if(error) throw error;
+    if(reset) box.replaceChildren();
+    (data || []).forEach(p => box.append(postCard(p)));
+    if(reset && !(data || []).length) box.append(h("div", {class:"msg"}, "ယခု post မရှိသေးပါ။ ကင်မရာမှ ပထမဆုံး post ကို တင်ကြည့်ပါ။ 📸"));
+    hOff += (data || []).length;
+    $("#hmore").hidden = (data || []).length < PER;
+    loadReactions(data || []);
+  }catch(e){
+    console.error(e);
+    box.replaceChildren(h("div", {class:"msg"}, "ချိတ်ဆက်မှု မအောင်မြင်ပါ။ အင်တာနက်ကို စစ်ပြီး ပြန်စမ်းပါ။"));
+  }finally{ hBusy = false; }
+}
+$("#hmore").onclick = () => loadHome(false);
+
+/* reactions – အကန့်အသတ်မရှိ နှိပ်နိုင် (၀.၇ စက္ကန့်စုပြီး server သို့ပို့) */
+const RX = new Map();
+function reactBar(p){
+  const st = {tot:{}, mine:{}, pend:{}, t:{}}; RX.set(p.id, st);
+  const bar = h("div", {class:"rx"}); const btns = {};
+  REACT.forEach(([k, e]) => {
+    const b = h("button", {class:"rb", "aria-label":k}, h("span", {class:"re"}, e), h("span", {class:"rc"}, ""));
+    b.onclick = () => tap(k, b); btns[k] = b; bar.append(b);
+  });
+  st.render = () => REACT.forEach(([k]) => { const b = btns[k], n = st.tot[k] || 0; b.querySelector(".rc").textContent = n ? fmt(n) : ""; b.classList.toggle("me", !!st.mine[k]); });
+  async function flush(k){
+    const n = st.pend[k]; if(!n) return; st.pend[k] = 0;
+    const {error} = await sb.rpc("react", {p_post: p.id, p_kind: k, p_n: n});
+    if(error){
+      st.tot[k] = Math.max(0, (st.tot[k] || 0) - n); st.mine[k] = Math.max(0, (st.mine[k] || 0) - n); st.render();
+      toast(/post_gone/.test(error.message) ? "ဤ post ပျောက်သွားပါပြီ" : "မအောင်မြင်ပါ");
+    }
+  }
+  function tap(k, b){
+    if(!user){ toast("Reaction ပေးရန် အကောင့်ဝင်ပါ"); return; }
+    st.tot[k] = (st.tot[k] || 0) + 1; st.mine[k] = (st.mine[k] || 0) + 1; st.pend[k] = (st.pend[k] || 0) + 1; st.render();
+    b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop");
+    clearTimeout(st.t[k]); st.t[k] = setTimeout(() => flush(k), 700);
+  }
+  st.render(); return bar;
+}
+async function loadReactions(posts){
+  if(!sb || !posts.length) return;
+  const ids = posts.map(p => p.id);
+  const [t, m] = await Promise.all([
+    sb.rpc("reaction_totals", {p_ids: ids}),
+    user ? sb.from("reactions").select("post_id,kind,n").in("post_id", ids) : Promise.resolve({data: []})
+  ]);
+  (t.data || []).forEach(r => { const st = RX.get(r.post_id); if(st) st.tot[r.kind] = Math.max(Number(r.total), st.tot[r.kind] || 0); });
+  (m.data || []).forEach(r => { const st = RX.get(r.post_id); if(st) st.mine[r.kind] = r.n; });
+  ids.forEach(id => { const st = RX.get(id); if(st) st.render(); });
+}
+
+function postCard(p){
+  const fb = h("button", {class:"fbtn", onclick: async () => {
+    if(!user){ toast("Follow လုပ်ရန် အကောင့်ဝင်ပါ"); go("profile"); return; }
+    if(following.has(p.user_id)){ await sb.from("follows").delete().eq("followee_id", p.user_id); following.delete(p.user_id); }
+    else { const {error} = await sb.from("follows").insert({followee_id: p.user_id}); if(error){ toast("မအောင်မြင်ပါ"); return; } following.add(p.user_id); }
+    upd();
+  }});
+  const upd = () => { const on = following.has(p.user_id); fb.textContent = on ? "Following" : "Follow"; fb.className = "fbtn" + (on ? " on" : ""); };
+  upd();
+  const own = user && user.id === p.user_id;
+  const chat = h("button", {class:"ibtn", "aria-label":"Chat", onclick: () => {
+    if(!user){ toast("Chat သုံးရန် အကောင့်ဝင်ပါ"); go("profile"); return; }
+    openThread({id: p.user_id, username: p.author_name, avatar_url: p.author_avatar});
+  }}, "💬");
+  const more = h("button", {class:"dots", "aria-label":"Report", onclick: async () => {
+    if(!confirm("ဤ post ကို Report လုပ်မလား?")) return;
+    await sb.from("reports").insert({post_id: p.id, reason: "reported by user"});
+    toast("Report လုပ်ပြီးပါပြီ၊ ကျေးဇူးတင်ပါသည်");
+  }}, "⋯");
+  const media = p.media_type === "video"
+    ? h("video", {class:"media", controls:true, playsinline:true, preload:"metadata", loop:true, src:p.media_url})
+    : h("img", {class:"media", loading:"lazy", alt:p.caption || "", src:p.media_url});
+  return h("article", {class:"post"},
+    h("div", {class:"ph"}, avatar(p.author_avatar, p.author_name),
+      h("div", {class:"pm"}, h("b", {}, p.author_name), h("small", {}, ago(p.created_at) + " · ⏳ " + left(p))),
+      own ? null : [fb, chat], more),
+    media, p.caption ? h("p", {class:"cap"}, p.caption) : null, reactBar(p));
+}
+function openPost(p){ const o = overlay(p.author_name, [postCard(p)]); loadReactions([p]); return o; }
+
+/* ---------- VIDEO (stream only; ကြည့်ရင် point ရ) ---------- */
+const IA_NOTE = "လိုင်စင်အချက်အလက်ကို ဖိုင်တင်သူက ကိုယ်တိုင်ဖြည့်ထားခြင်းဖြစ်ပြီး မှားနေနိုင်ပါသည်။ မှန်ကန်မှုမရှိဟု ထင်ပါက Report လုပ်ပါ။";
+function licLabel(url){
+  if(!url) return null; const u = String(url).toLowerCase();
+  if(u.includes("publicdomain")) return "Public Domain";
+  const m = u.match(/licenses\/([a-z\-]+)\/([\d.]+)/);
+  return m ? "Creative Commons " + m[1].toUpperCase() + " " + m[2] : null;
+}
+const VP = {
+  async ia(t, page){
+    const lic = "(licenseurl:*creativecommons.org* OR licenseurl:*publicdomain*)";
+    const col = "collection:(feature_films OR prelinger OR classic_cartoons OR nasa)";
+    const q = (t ? `(${t}) AND ` : "") + `mediatype:movies AND (${lic} OR ${col})`;
+    const url = "https://archive.org/advancedsearch.php?q=" + encodeURIComponent(q)
+      + "&fl[]=identifier&fl[]=title&fl[]=creator&fl[]=licenseurl&sort[]=downloads+desc"
+      + `&rows=${PER}&page=${page}&output=json`;
+    const j = await (await fetch(url)).json();
+    return (j.response.docs || []).map(d => ({
+      title: d.title || d.identifier,
+      creator: Array.isArray(d.creator) ? d.creator[0] : (d.creator || "Internet Archive"),
+      src: "Internet Archive", license: licLabel(d.licenseurl) || "Archive collection",
+      licenseUrl: d.licenseurl || ("https://archive.org/details/" + d.identifier),
+      note: IA_NOTE, thumb: "https://archive.org/services/img/" + d.identifier,
+      embed: "https://archive.org/embed/" + d.identifier, pageUrl: "https://archive.org/details/" + d.identifier,
+      key: "ia:" + d.identifier
+    }));
+  },
+  async pexels(t, page){
+    if(!C.PEXELS_KEY) return [];
+    const base = t ? "https://api.pexels.com/videos/search?query=" + encodeURIComponent(t) + "&" : "https://api.pexels.com/videos/popular?";
+    const j = await (await fetch(base + `per_page=${PER}&page=${page}`, {headers:{Authorization:C.PEXELS_KEY}})).json();
+    return (j.videos || []).map(v => {
+      const f = (v.video_files || []).filter(x => x.file_type === "video/mp4").sort((a, b) => a.width - b.width);
+      const pick = f.find(x => x.width >= 640) || f[f.length - 1];
+      return {title: (v.url || "").split("/").filter(Boolean).pop().replace(/-\d+$/, "").replace(/-/g, " ") || "Pexels video",
+        creator: (v.user && v.user.name) || "Pexels", src: "Pexels", license: "Pexels License",
+        licenseUrl: "https://www.pexels.com/license/", thumb: v.image, mp4: pick && pick.link, pageUrl: v.url, key: "px:" + v.id};
+    }).filter(x => x.mp4);
+  },
+  async pixabay(t, page){
+    if(!C.PIXABAY_KEY) return [];
+    const p = new URLSearchParams({key: C.PIXABAY_KEY, per_page: PER, page, safesearch: "true"});
+    if(t) p.set("q", t);
+    const j = await (await fetch("https://pixabay.com/api/videos/?" + p)).json();
+    return (j.hits || []).map(x => {
+      const v = x.videos || {}; const k = v.medium && v.medium.url ? "medium" : (v.small && v.small.url ? "small" : null);
+      return k ? {title: (x.tags || "Pixabay video").split(",").slice(0, 3).join(", "), creator: x.user, src: "Pixabay",
+        license: "Pixabay Content License", licenseUrl: "https://pixabay.com/service/license-summary/",
+        thumb: `https://i.vimeocdn.com/video/${x.picture_id}_640x360.jpg`, mp4: v[k].url, pageUrl: x.pageURL, key: "pb:" + x.id} : null;
+    }).filter(Boolean);
+  },
+  async yt(t, page){
+    if(!C.YT_KEY || page > 1) return [];
+    let url;
+    if(t) url = "https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoEmbeddable=true&safeSearch=moderate&maxResults=" + PER + "&q=" + encodeURIComponent(t) + "&key=" + C.YT_KEY;
+    else url = "https://www.googleapis.com/youtube/v3/videos?part=snippet,status&chart=mostPopular&maxResults=" + PER + "&key=" + C.YT_KEY;
+    const j = await (await fetch(url)).json();
+    return (j.items || []).filter(x => !x.status || x.status.embeddable).map(x => {
+      const id = typeof x.id === "string" ? x.id : x.id.videoId;
+      return {title: x.snippet.title, creator: x.snippet.channelTitle, src: "YouTube", license: "YouTube ၏ တရားဝင် player",
+        licenseUrl: "https://www.youtube.com/watch?v=" + id,
+        thumb: (x.snippet.thumbnails.medium || x.snippet.thumbnails.default).url,
+        embed: "https://www.youtube-nocookie.com/embed/" + id + "?playsinline=1&rel=0", pageUrl: "https://www.youtube.com/watch?v=" + id, key: "yt:" + id};
+    });
+  }
+};
+async function fetchVideos(term, page){
+  const res = await Promise.allSettled(Object.values(VP).map(f => f(term, page)));
+  const lists = res.filter(r => r.status === "fulfilled").map(r => r.value);
+  const out = []; const n = Math.max(0, ...lists.map(l => l.length));
+  for(let i = 0; i < n; i++) lists.forEach(l => { if(l[i]) out.push(l[i]); });
+  return out;
+}
+let vPage = 1, vBusy = false;
+function drawVtip(){
+  $("#vtip").textContent = user || !sb
+    ? `⭐ ဗီဒီယိုတစ်ခုကို ${WATCH_SECS} စက္ကန့်ကြည့်ရင် Point +2 ရပါမယ် (တစ်နေ့ အများဆုံး +20)။ ကင်မရာသုံးရန် Point လိုပါသည်။`
+    : `⭐ အကောင့်ဝင်ပြီး ဗီဒီယိုကြည့်ရင် Point ရပါမယ် (${WATCH_SECS} စက္ကန့်လျှင် +2)။ ကြည့်ရုံသက်သက်ဆိုလျှင် အကောင့်မလိုပါ။`;
+}
+async function loadVideos(reset){
+  drawVtip();
+  if(vBusy) return; vBusy = true;
+  const grid = $("#vgrid"), st = $("#vstat");
+  if(reset){ vPage = 1; grid.replaceChildren(); }
+  st.textContent = "ရှာနေပါသည်…"; $("#vmore").hidden = true;
+  try{
+    const items = await fetchVideos(CAT_Q[cat] || "", vPage);
+    if(!items.length && vPage === 1) st.textContent = "ရလဒ်မတွေ့ပါ။ အခြားအမျိုးအစားကို ရွေးကြည့်ပါ။";
+    else { st.textContent = ""; items.forEach(it => grid.append(videoCard(it))); }
+    $("#vmore").hidden = items.length === 0;
+  }catch(e){ console.error(e); st.textContent = "ချိတ်ဆက်မှု မအောင်မြင်ပါ။ နောက်မှ ပြန်စမ်းပါ။"; }
+  finally{ vBusy = false; }
+}
+$("#vmore").onclick = () => { vPage++; loadVideos(false); };
+function videoCard(it){
+  return h("button", {class:"vc", onclick: () => openPlayer(it)},
+    h("img", {class:"th", loading:"lazy", alt:"", src:it.thumb}),
+    h("div", {class:"b"}, h("h4", {}, it.title), h("small", {}, it.src + " · " + it.creator)));
+}
+function openPlayer(it){
+  let el;
+  if(it.embed) el = h("iframe", {class:"player", src:it.embed, allowfullscreen:true, allow:"autoplay; fullscreen; encrypted-media", loading:"lazy"});
+  else {
+    el = h("video", {class:"player", controls:true, autoplay:true, playsinline:true, controlslist:"nodownload noremoteplayback", disablepictureinpicture:true, src:it.mp4});
+    el.addEventListener("contextmenu", e => e.preventDefault());
+  }
+  let wt = null;
+  if(sb && user){
+    wt = setTimeout(async () => {
+      const {data, error} = await sb.rpc("earn_watch", {p_key: it.key});
+      if(error) return;
+      if(data > 0){ toast("⭐ +" + data + " ဗီဒီယိုကြည့်ရှုမှု ဆု"); loadWallet(); }
+      else toast("ဤဗီဒီယိုမှ ယနေ့ရပြီးသား သို့မဟုတ် တစ်နေ့ကန့်သတ်ချက် ပြည့်ပါပြီ");
+    }, WATCH_SECS * 1000);
+  } else if(sb) toast("အကောင့်ဝင်ပြီး " + WATCH_SECS + " စက္ကန့်ကြည့်ရင် ⭐ ရပါမယ်");
+  const rep = h("a", {href:`mailto:${C.CONTACT_EMAIL}?subject=${encodeURIComponent("Report: " + it.title)}&body=${encodeURIComponent(it.pageUrl + "\n\nအကြောင်းပြချက်:")}`}, "⚑ Report လုပ်မည်");
+  overlay(it.title, [el, h("div", {class:"info"},
+    h("p", {}, "ဖန်တီးသူ - " + it.creator + " · " + it.src),
+    h("p", {}, "လိုင်စင် - ", h("a", {href:it.licenseUrl, target:"_blank", rel:"noopener"}, it.license)),
+    it.note ? h("p", {}, it.note) : null,
+    h("p", {}, h("a", {href:it.pageUrl, target:"_blank", rel:"noopener"}, "မူလစာမျက်နှာတွင် ကြည့်မည်"), "  ·  ", rep))], () => clearTimeout(wt));
+}
+
+/* ---------- SEARCH ---------- */
+$("#srchBtn").onclick = () => {
+  const inp = h("input", {type:"search", placeholder:"post၊ ဗီဒီယို၊ လူ ရှာရန်…", enterkeyhint:"search"});
+  const res = h("div", {});
+  const clean = s => s.replace(/[%,()\\]/g, " ");
+  overlay("ရှာဖွေရန်", [h("form", {onsubmit: async e => {
+    e.preventDefault(); const q = inp.value.trim(); if(!q) return;
+    res.replaceChildren(h("div", {class:"msg"}, "ရှာနေပါသည်…"));
+    const iso = new Date().toISOString();
+    const [posts, people, vids] = await Promise.all([
+      sb ? sb.from("posts").select("*").gt("expires_at", iso).or(`caption.ilike.%${clean(q)}%,author_name.ilike.%${clean(q)}%`).limit(10).then(r => r.data || []).catch(() => []) : [],
+      sb ? sb.from("profiles").select("id,username,avatar_url").ilike("username", `%${clean(q)}%`).limit(10).then(r => r.data || []).catch(() => []) : [],
+      fetchVideos(q, 1).catch(() => [])
+    ]);
+    res.replaceChildren();
+    if(people.length){
+      res.append(h("div", {class:"sec"}, "လူများ"));
+      people.filter(u => !user || u.id !== user.id).forEach(u => res.append(h("button", {class:"hrow", onclick: () => {
+        if(!user){ toast("Chat သုံးရန် အကောင့်ဝင်ပါ"); return; } document.querySelectorAll(".ov").forEach(x => x.close && x.close()); openThread(u);
+      }}, avatar(u.avatar_url, u.username, 44), h("div", {}, h("b", {}, u.username), h("small", {}, "💬 Chat စပြောမည်")))));
+    }
+    res.append(h("div", {class:"sec"}, "Post များ"));
+    if(!posts.length) res.append(h("div", {class:"msg", style:"padding:12px"}, "မတွေ့ပါ"));
+    posts.forEach(p => res.append(h("button", {class:"hrow", onclick: () => openPost(p)},
+      p.media_type === "image" ? h("img", {class:"t", src:p.media_url, alt:""}) : h("div", {class:"ph0"}),
+      h("div", {}, h("b", {}, p.caption || "(စာတန်းမရှိ)"), h("small", {}, p.author_name)))));
+    res.append(h("div", {class:"sec"}, "ဗီဒီယိုများ"));
+    if(!vids.length) res.append(h("div", {class:"msg", style:"padding:12px"}, "မတွေ့ပါ"));
+    vids.forEach(v => res.append(h("button", {class:"hrow", onclick: () => openPlayer(v)},
+      h("img", {class:"t", src:v.thumb, alt:"", loading:"lazy"}), h("div", {}, h("b", {}, v.title), h("small", {}, v.src)))));
+  }}, inp), res]);
+  setTimeout(() => inp.focus(), 50);
+};
+
+/* ---------- CHAT (မက်ဆေ့ချ်များ ၁၀ မိနစ်ကြာလျှင် ပျောက်) ---------- */
+const PK = "ov_peers_v1";
+const peersList = () => jget(PK, []);
+function addPeer(p){
+  const a = peersList().filter(x => x.id !== p.id);
+  a.unshift({id: p.id, username: p.username, avatar_url: p.avatar_url || null});
+  lsSet(PK, JSON.stringify(a.slice(0, 30)));
+}
+function chatSeen(){ lsSet("ov_chat_seen", String(Date.now())); badgeN = 0; applyBadge(); }
+let badgeT = null;
+async function pollBadge(){
+  if(!sb || !user || tab === "chat") return;
+  const since = new Date(+(lsGet("ov_chat_seen") || 0)).toISOString();
+  const {count} = await sb.from("messages").select("id", {count:"exact", head:true}).eq("to_id", user.id).gt("created_at", since).gt("expires_at", new Date().toISOString());
+  badgeN = count || 0; applyBadge();
+}
+function startBadge(){ stopBadge(); pollBadge(); badgeT = setInterval(pollBadge, 15000); }
+function stopBadge(){ clearInterval(badgeT); badgeN = 0; applyBadge(); }
+
+async function drawChat(){
+  const box = $("#chat"); box.replaceChildren();
+  if(!sb){ box.append(plainCard("Supabase မချိတ်ရသေးပါ", "Chat သုံးရန် config.js ကို အရင်ပြင်ပါ။")); return; }
+  if(!user){ box.append(loginCard("Chat သုံးရန် အကောင့်ဝင်ပါ။ (ကြည့်ရုံသက်သက်ဆိုလျှင် အကောင့်မလိုပါ)")); return; }
+  chatSeen();
+  box.append(h("div", {class:"row-between"}, h("b", {style:"font-size:1.15rem"}, "Chat"), h("button", {class:"btn", onclick: newChat}, "＋ စကားစပြောမည်")),
+    h("div", {class:"tip"}, `⏳ မက်ဆေ့ချ်များသည် ${CHAT_TTL} မိနစ်ကြာလျှင် အလိုအလျောက် ပျောက်သွားပါမည်။`));
+  const list = h("div", {}); box.append(list);
+  await renderConvos(list);
+  clearInterval(convoT);
+  convoT = setInterval(() => { if(!list.isConnected){ clearInterval(convoT); return; } if(!document.querySelector(".thread")) renderConvos(list); }, 8000);
+}
+async function renderConvos(list){
+  const {data} = await sb.from("messages").select("*").gt("expires_at", new Date().toISOString()).order("created_at", {ascending:false}).limit(200);
+  const last = new Map();
+  (data || []).forEach(m => { const pid = m.from_id === user.id ? m.to_id : m.from_id; if(!last.has(pid)) last.set(pid, m); });
+  let known = peersList(); const have = new Set(known.map(x => x.id));
+  const missing = [...last.keys()].filter(id => !have.has(id));
+  if(missing.length){
+    const {data: ps} = await sb.from("profiles").select("id,username,avatar_url").in("id", missing);
+    (ps || []).forEach(addPeer); known = peersList();
+  }
+  const rows = known.map(p => ({p, m: last.get(p.id)})).sort((a, b) => (b.m ? +new Date(b.m.created_at) : 0) - (a.m ? +new Date(a.m.created_at) : 0));
+  list.replaceChildren();
+  if(!rows.length){ list.append(h("div", {class:"msg"}, "စကားဝိုင်း မရှိသေးပါ။ “စကားစပြောမည်” သို့မဟုတ် Post ပေါ်က 💬 ကိုနှိပ်ပါ။")); return; }
+  rows.forEach(({p, m}) => list.append(h("button", {class:"hrow", onclick: () => openThread(p)}, avatar(p.avatar_url, p.username, 46),
+    h("div", {style:"flex:1;min-width:0"}, h("b", {}, p.username), h("small", {class:"ellip"}, m ? ((m.from_id === user.id ? "သင်: " : "") + m.body) : "မက်ဆေ့ချ် မရှိတော့ပါ")),
+    m ? h("small", {}, "⏳ " + leftMin(m)) : null)));
+}
+function newChat(){
+  const inp = h("input", {type:"search", placeholder:"အမည်ဖြင့် ရှာရန်…"});
+  const res = h("div", {});
+  const o = overlay("စကားစပြောမည်", [h("form", {onsubmit: async e => {
+    e.preventDefault(); const q = inp.value.trim().replace(/[%,()\\]/g, " "); if(!q) return;
+    const {data} = await sb.from("profiles").select("id,username,avatar_url").ilike("username", `%${q}%`).neq("id", user.id).limit(20);
+    res.replaceChildren();
+    if(!(data || []).length) res.append(h("div", {class:"msg"}, "မတွေ့ပါ"));
+    (data || []).forEach(u => res.append(h("button", {class:"hrow", onclick: () => { o.close(); openThread(u); }}, avatar(u.avatar_url, u.username, 44), h("b", {}, u.username))));
+  }}, inp), h("div", {style:"height:12px"}), res]);
+  setTimeout(() => inp.focus(), 50);
+}
+function openThread(peer){
+  if(!user){ toast("Chat သုံးရန် အကောင့်ဝင်ပါ"); go("profile"); return; }
+  addPeer(peer);
+  const list = h("div", {class:"bubbles"});
+  const inp = h("input", {placeholder:"စာရေးရန်…", maxlength:500, enterkeyhint:"send"});
+  let timer = null, lastSig = "";
+  const close = () => { clearInterval(timer); o.remove(); if(tab === "chat") drawChat(); };
+  const o = h("div", {class:"ov thread"},
+    h("div", {class:"ovh"}, h("button", {class:"x", "aria-label":"နောက်သို့", onclick: close}, "←"), avatar(peer.avatar_url, peer.username, 34), h("h2", {}, peer.username)),
+    h("div", {class:"tip", style:"margin:8px 12px 0"}, `⏳ ${CHAT_TTL} မိနစ်ကြာလျှင် မက်ဆေ့ချ်များ ပျောက်ပါမည်`),
+    list,
+    h("form", {class:"composer", onsubmit: async e => {
+      e.preventDefault(); const t = inp.value.trim(); if(!t) return; inp.value = "";
+      const {error} = await sb.from("messages").insert({to_id: peer.id, body: t});
+      if(error){ toast("ပို့မရပါ - " + error.message); inp.value = t; }
+      await pull(true);
+    }}, inp, h("button", {class:"btn pink", type:"submit"}, "ပို့")));
+  async function pull(force){
+    if(!o.isConnected){ clearInterval(timer); return; }
+    const f = `and(from_id.eq.${user.id},to_id.eq.${peer.id}),and(from_id.eq.${peer.id},to_id.eq.${user.id})`;
+    const {data} = await sb.from("messages").select("*").or(f).gt("expires_at", new Date().toISOString()).order("created_at", {ascending:true});
+    const msgs = data || [];
+    const sig = msgs.map(m => m.id).join(",") + "|" + Math.floor(Date.now() / 30000);
+    if(!force && sig === lastSig) return; lastSig = sig;
+    const near = list.scrollHeight - list.scrollTop - list.clientHeight < 90;
+    list.replaceChildren();
+    if(!msgs.length) list.append(h("div", {class:"msg"}, "စကားစပြောလိုက်ပါ 👋"));
+    msgs.forEach(m => list.append(h("div", {class:"bb" + (m.from_id === user.id ? " me" : "")}, h("span", {}, m.body), h("small", {}, "⏳ " + leftMin(m)))));
+    if(near || force) list.scrollTop = list.scrollHeight;
+    chatSeen();
+  }
+  $("#layer").append(o);
+  pull(true); timer = setInterval(pull, 3000);
+}
+
+/* ---------- PROFILE (cover + profile picture) ---------- */
+function loadImg(file){ return new Promise((res, rej) => { const u = URL.createObjectURL(file); const i = new Image(); i.onload = () => { URL.revokeObjectURL(u); res(i); }; i.onerror = rej; i.src = u; }); }
+async function cropBlob(file, W, H){
+  const img = await loadImg(file); const c = document.createElement("canvas"); c.width = W; c.height = H;
+  const x = c.getContext("2d"); const s = Math.max(W / img.width, H / img.height); const w = img.width * s, hh = img.height * s;
+  x.drawImage(img, (W - w) / 2, (H - hh) / 2, w, hh);
+  return new Promise(r => c.toBlob(r, "image/jpeg", .85));
+}
+function pickPic(kind){
+  const inp = h("input", {type:"file", accept:"image/*"});
+  inp.onchange = async () => {
+    const f = inp.files[0]; if(!f) return;
+    toast("တင်နေသည်…");
+    try{
+      const blob = await cropBlob(f, kind === "avatar" ? 512 : 1200, kind === "avatar" ? 512 : 450);
+      const path = `${user.id}/${kind}-${Date.now()}.jpg`;
+      const up = await sb.storage.from("avatars").upload(path, blob, {contentType:"image/jpeg"});
+      if(up.error) throw up.error;
+      const url = sb.storage.from("avatars").getPublicUrl(path).data.publicUrl;
+      const old = prof && prof[kind + "_url"];
+      const {error} = await sb.from("profiles").update({[kind + "_url"]: url}).eq("id", user.id);
+      if(error) throw error;
+      if(old){ try{ const op = decodeURIComponent(new URL(old).pathname.split("/avatars/")[1] || ""); if(op) await sb.storage.from("avatars").remove([op]); }catch(e){} }
+      await loadProfile(); drawProfile(); toast("ပြောင်းပြီးပါပြီ");
+    }catch(e){ console.error(e); toast("မအောင်မြင်ပါ - " + (e.message || e)); }
+  };
+  inp.click();
+}
+const LEDGER = {welcome:"ကြိုဆိုအမှတ်", watch:"ဗီဒီယိုကြည့်ရှု", referral_new:"Referral ဖြင့် ဝင်ရောက်", referral_by:"သူငယ်ချင်း ဖိတ်ခေါ်မှု", capture:"ကင်မရာ အသုံးပြု"};
+async function drawProfile(){
+  const box = $("#prof"); box.replaceChildren();
+  if(!sb){ box.append(h("div", {class:"pad"}, plainCard("Supabase မချိတ်ရသေးပါ", "config.js ကို အရင်ပြင်ပါ။"))); return; }
+  if(!user){
+    box.append(h("div", {class:"pad"}, plainCard("OpenVideo", "ကြည့်ရှုရုံဆိုလျှင် အကောင့်မလိုပါ။ Post တင်ရန်၊ ကင်မရာသုံးရန်၊ Chat လုပ်ရန်၊ Point ရယူရန်သာ အကောင့်လိုပါသည်။"), loginCard("Email ဖြင့် စကားဝှက်မလိုဘဲ ဝင်နိုင်ပါသည်။")));
+    return;
+  }
+  if(!prof) await loadProfile();
+  const P = prof || {username: uname()};
+  const cover = h("div", {class:"cover"}, h("button", {class:"cedit", onclick: () => pickPic("cover")}, "📷 Cover ပြောင်းမည်"));
+  if(P.cover_url) cover.style.backgroundImage = `url("${P.cover_url.replace(/"/g, "%22")}")`;
+  const nm = h("input", {value:P.username, maxlength:30, placeholder:"အမည်"});
+  const bio = h("textarea", {rows:2, maxlength:160, placeholder:"ကိုယ်ရေးအကျဉ်း"}); bio.value = P.bio || "";
+  const edit = h("div", {class:"card", hidden:true}, h("p", {}, "အမည်"), nm, h("p", {}, "ကိုယ်ရေးအကျဉ်း"), bio,
+    h("button", {class:"btn", style:"margin-top:10px", onclick: async () => {
+      const {error} = await sb.from("profiles").update({username: nm.value.trim() || P.username, bio: bio.value.trim() || null}).eq("id", user.id);
+      toast(error ? "မအောင်မြင်ပါ" : "သိမ်းပြီးပါပြီ"); await loadProfile(); drawProfile();
+    }}, "သိမ်းမည်"));
+  const stats = h("div", {class:"stats"});
+  box.append(cover,
+    h("div", {class:"pavw"}, avatar(P.avatar_url, P.username, 96), h("button", {class:"aedit", "aria-label":"ပုံပြောင်းရန်", onclick: () => pickPic("avatar")}, "📷")),
+    h("div", {class:"pname"}, h("h2", {}, P.username), P.bio ? h("p", {}, P.bio) : null,
+      h("div", {style:"display:flex;gap:8px;margin-top:10px"}, h("button", {class:"btn alt", onclick: () => edit.hidden = !edit.hidden}, "✏️ ပြင်မည်"),
+        h("button", {class:"btn alt", onclick: async () => { await sb.auth.signOut(); toast("ထွက်ပြီးပါပြီ"); }}, "Logout"))),
+    stats, h("div", {class:"pad", style:"padding-top:0"}, edit));
+  const pad = h("div", {class:"pad", style:"padding-top:0"}); box.append(pad);
+
+  /* points */
+  const link = location.origin + location.pathname + "?ref=" + (P.referral_code || "");
+  const pts = h("div", {class:"card"}, h("div", {class:"row-between", style:"margin:0"}, h("div", {}, h("small", {style:"color:var(--mu)"}, "ကျွန်ုပ်၏ Point"), h("div", {class:"big"}, "⭐ " + balance))),
+    h("div", {class:"sec", style:"margin-top:10px"}, "ရယူနည်း"),
+    h("div", {class:"kv"}, h("span", {}, "ဗီဒီယို " + WATCH_SECS + " စက္ကန့်ကြည့်ရှု"), h("b", {}, "+2 (တစ်နေ့ ≤ 20)")),
+    h("div", {class:"kv"}, h("span", {}, "သူငယ်ချင်းတစ်ဦး ဖိတ်ခေါ်"), h("b", {}, "+50")),
+    h("div", {class:"sec", style:"margin-top:10px"}, "သုံးစွဲမှု"),
+    h("div", {class:"kv"}, h("span", {}, "ဓာတ်ပုံရိုက်"), h("b", {}, "−" + COST.image)),
+    h("div", {class:"kv"}, h("span", {}, "ဗီဒီယိုရိုက်"), h("b", {}, "−" + COST.video)));
+  const rin = h("input", {readonly:true, value:link, "aria-label":"Referral link"});
+  const share = async () => {
+    const text = "OpenVideo တွင် ကျွန်ုပ်နှင့်အတူ ပါဝင်ပါ – Referral code: " + P.referral_code;
+    try{ if(navigator.share){ await navigator.share({title:"OpenVideo", text, url:link}); return; } }catch(e){ return; }
+    try{ await navigator.clipboard.writeText(link); toast("Link ကူးပြီးပါပြီ"); }catch(e){ rin.select(); toast("Link ကို ရွေး၍ ကူးပါ"); }
+  };
+  const ref = h("div", {class:"card"}, h("h3", {}, "🎁 သူငယ်ချင်းဖိတ်ပြီး Point ရယူပါ"),
+    h("p", {}, "ကိုယ့်ဖိတ်စာ link ဖြင့် အကောင့်သစ်ဖွင့်သူတိုင်းအတွက် သင် ⭐ +50 ရပြီး သူ/သူမလည်း ⭐ +20 ရပါမည်။ Referral code: " + (P.referral_code || "-")),
+    h("div", {class:"refbox"}, rin, h("button", {class:"btn", onclick: share}, "မျှဝေမည်")));
+  if(!P.referred_by){
+    const ci = h("input", {placeholder:"သူငယ်ချင်း၏ referral code ရှိလျှင် ထည့်ပါ"});
+    ref.append(h("div", {class:"refbox"}, ci, h("button", {class:"btn alt", onclick: async () => {
+      const {data, error} = await sb.rpc("claim_referral", {p_code: ci.value});
+      if(error){ toast("မအောင်မြင်ပါ"); return; }
+      toast({ok:"အောင်မြင်ပါသည်! ⭐ +20", invalid:"Code မမှန်ပါ", already:"အသုံးပြုပြီးသားပါ", self:"ကိုယ့် code ကို မသုံးနိုင်ပါ", too_late:"အကောင့်ဖွင့်ပြီး ၇ ရက်ကျော်၍ မရတော့ပါ"}[data] || data);
+      await loadWallet(); drawProfile();
+    }}, "အသုံးပြုမည်")));
+  }
+  const led = h("div", {class:"card"}, h("h3", {}, "မကြာသေးမီ Point မှတ်တမ်း"));
+  pad.append(pts, ref, led, h("div", {class:"sec"}, "ကျွန်ုပ်၏ ယခုတင်ထားသော post များ (၂၄ နာရီအတွင်း)"));
+  const list = h("div", {}); pad.append(list);
+
+  const [lg, ps] = await Promise.all([
+    sb.from("point_ledger").select("delta,reason,created_at").order("created_at", {ascending:false}).limit(6),
+    sb.from("posts").select("*").eq("user_id", user.id).gt("expires_at", new Date().toISOString()).order("created_at", {ascending:false})
+  ]);
+  (lg.data || []).forEach(r => led.append(h("div", {class:"kv"}, h("span", {}, (LEDGER[r.reason] || r.reason) + " · " + ago(r.created_at)), h("b", {style:"color:" + (r.delta > 0 ? "var(--ok)" : "#f87171")}, (r.delta > 0 ? "+" : "") + r.delta))));
+  if(!(lg.data || []).length) led.append(h("p", {}, "မှတ်တမ်း မရှိသေးပါ"));
+  const posts = ps.data || [];
+  stats.append(h("div", {}, h("b", {}, String(posts.length)), h("small", {}, "Post")), h("div", {}, h("b", {}, String(following.size)), h("small", {}, "Following")), h("div", {}, h("b", {}, "⭐ " + balance), h("small", {}, "Point")));
+  if(!posts.length) list.append(h("div", {class:"msg", style:"padding:12px"}, "Post မရှိသေးပါ"));
+  posts.forEach(p => {
+    const row = h("div", {class:"hrow"},
+      p.media_type === "image" ? h("img", {class:"t", src:p.media_url, alt:""}) : h("div", {class:"ph0"}),
+      h("div", {style:"flex:1"}, h("b", {}, p.caption || "Post"), h("small", {}, "⏳ " + left(p))),
+      h("button", {class:"btn alt", onclick: async () => {
+        if(!confirm("ဖျက်မလား?")) return;
+        try{ const path = new URL(p.media_url).pathname.split("/posts/")[1]; if(path) await sb.storage.from("posts").remove([decodeURIComponent(path)]); }catch(e){}
+        await sb.from("posts").delete().eq("id", p.id); row.remove(); toast("ဖျက်ပြီးပါပြီ");
+      }}, "ဖျက်"));
+    list.append(row);
+  });
+}
+
+/* ================= CAMERA ================= */
+const TPL = [
+  {id:"none", n:"Normal", e:"✨"},
+  {id:"funny", n:"ရယ်စရာ", e:"🤪", fx:1, st:0.9, d:["nose","glasses"]},
+  {id:"bulge", n:"ဖောင်း", e:"🎈", fx:1},
+  {id:"pinch", n:"ပိန်", e:"🍋", fx:2},
+  {id:"swirl", n:"လှည့်", e:"🌀", fx:3},
+  {id:"wave", n:"လှိုင်း", e:"🌊", fx:5},
+  {id:"mirror", n:"မှန်", e:"🪞", fx:4},
+  {id:"crown", n:"သရဖူ", e:"👑", d:["crown"]},
+  {id:"cool", n:"မျက်မှန်", e:"😎", d:["glasses"]},
+  {id:"stache", n:"နှုတ်ခမ်းမွေး", e:"🥸", d:["stache"]},
+  {id:"clown", n:"ပြက်လုံး", e:"🤡", d:["nose"], fx:1, st:0.5},
+  {id:"love", n:"ချစ်", e:"😍", d:["love"]},
+  {id:"angel", n:"ကောင်းကင်ဘုံ", e:"😇", d:["halo"]},
+  {id:"devil", n:"မာရ်နတ်", e:"😈", d:["horns"]},
+  {id:"fire", n:"မီး", e:"🔥", d:["fire"]},
+  {id:"bw", n:"အဖြူအမည်း", e:"⚫", flt:1},
+  {id:"sepia", n:"ရှေးဟောင်း", e:"🟤", flt:2},
+  {id:"neon", n:"Neon", e:"💜", flt:3},
+  {id:"poster", n:"ကာတွန်း", e:"🎨", flt:4},
+  {id:"vintage", n:"Vintage", e:"📼", flt:5}
+];
+const DRAW = {
+  crown(c, x, y, R){ c.font = `${R*1.7}px serif`; c.textAlign = "center"; c.textBaseline = "middle"; c.fillText("👑", x, y - R*1.15); },
+  glasses(c, x, y, R){
+    const ry = y - R*.15, rr = R*.38;
+    c.lineWidth = R*.07; c.strokeStyle = "#111"; c.fillStyle = "rgba(15,15,25,.88)";
+    [-1, 1].forEach(s => { c.beginPath(); c.arc(x + s*R*.46, ry, rr, 0, 7); c.fill(); c.stroke(); });
+    c.beginPath(); c.moveTo(x - R*.1, ry); c.lineTo(x + R*.1, ry);
+    c.moveTo(x - R*.84, ry); c.lineTo(x - R*1.1, ry - R*.05); c.moveTo(x + R*.84, ry); c.lineTo(x + R*1.1, ry - R*.05); c.stroke();
+    c.fillStyle = "rgba(255,255,255,.25)";
+    [-1, 1].forEach(s => { c.beginPath(); c.ellipse(x + s*R*.36, ry - R*.14, R*.1, R*.05, -.5, 0, 7); c.fill(); });
+  },
+  stache(c, x, y, R){
+    c.fillStyle = "#2b1b12"; const my = y + R*.42;
+    [-1, 1].forEach(s => { c.beginPath(); c.moveTo(x, my); c.bezierCurveTo(x + s*R*.2, my - R*.22, x + s*R*.6, my - R*.18, x + s*R*.78, my + R*.14);
+      c.bezierCurveTo(x + s*R*.5, my + R*.02, x + s*R*.25, my + R*.1, x, my + R*.1); c.closePath(); c.fill(); });
+  },
+  nose(c, x, y, R){
+    const g = c.createRadialGradient(x - R*.06, y + R*.1, R*.02, x, y + R*.15, R*.22);
+    g.addColorStop(0, "#ff9a9a"); g.addColorStop(1, "#d10f0f");
+    c.fillStyle = g; c.beginPath(); c.arc(x, y + R*.15, R*.2, 0, 7); c.fill();
+  },
+  love(c, x, y, R){ c.font = `${R*.62}px serif`; c.textAlign = "center"; c.textBaseline = "middle"; [-1, 1].forEach(s => c.fillText("❤️", x + s*R*.46, y - R*.15)); },
+  halo(c, x, y, R){
+    c.strokeStyle = "#ffd84a"; c.lineWidth = R*.1; c.shadowColor = "#ffd84a"; c.shadowBlur = R*.2;
+    c.beginPath(); c.ellipse(x, y - R*1.2, R*.55, R*.16, 0, 0, 7); c.stroke(); c.shadowBlur = 0;
+  },
+  horns(c, x, y, R){
+    c.fillStyle = "#c81d25";
+    [-1, 1].forEach(s => { c.beginPath(); c.moveTo(x + s*R*.25, y - R*.9); c.quadraticCurveTo(x + s*R*.85, y - R*1.05, x + s*R*.62, y - R*1.7);
+      c.quadraticCurveTo(x + s*R*.45, y - R*1.2, x + s*R*.1, y - R*1.0); c.closePath(); c.fill(); });
+  },
+  fire(c, x, y, R){ c.font = `${R*.9}px serif`; c.textAlign = "center"; c.textBaseline = "middle"; [-1, 1].forEach(s => c.fillText("🔥", x + s*R*1.15, y + R*.1)); }
+};
+
+const cv = $("#cv"), cx = cv.getContext("2d");
+const cam = {stream:null, video:null, facing:"user", raf:0, tpl:TPL[0], ax:.5, ay:.42, gl:null, mode:"photo", rec:null, chunks:[], t0:0, tick:0, credit:null};
+
+const VS = "attribute vec2 a;varying vec2 v;void main(){v=a*.5+.5;gl_Position=vec4(a,0.,1.);}";
+const FS = `precision mediump float;varying vec2 v;uniform sampler2D tx;uniform vec2 c;uniform float r,s,asp,t,mir;uniform vec4 crop;uniform int fx,flt;
+void main(){
+  vec2 p=v;
+  if(fx==4){ if(p.x>.5) p.x=1.-p.x; }
+  if(fx==5){ p.x+=sin(p.y*18.+t*4.)*.012*s; p.y+=cos(p.x*14.+t*3.)*.008*s; }
+  if(fx==1||fx==2||fx==3){
+    vec2 d=p-c; d.x*=asp; float dist=length(d);
+    if(dist<r&&dist>.0001){
+      float k=dist/r;
+      if(fx==1){ k=pow(k,1.+s*1.2); d=normalize(d)*k*r; }
+      else if(fx==2){ k=pow(k,1./(1.+s*1.2)); d=normalize(d)*k*r; }
+      else { float a=s*3.*(1.-k)*(1.-k); float cs=cos(a),sn=sin(a); d=mat2(cs,-sn,sn,cs)*d; }
+      d.x/=asp; p=c+d;
+    }
+  }
+  p.x=mix(p.x,1.-p.x,mir);
+  vec4 col=texture2D(tx,vec2(p.x*crop.x+crop.z,p.y*crop.y+crop.w));
+  float g=dot(col.rgb,vec3(.299,.587,.114));
+  if(flt==1) col.rgb=vec3(g);
+  else if(flt==2) col.rgb=vec3(g*1.2,g,g*.8);
+  else if(flt==3) col.rgb=vec3(col.b,col.r,col.g)*1.3;
+  else if(flt==4) col.rgb=floor(col.rgb*4.)/3.;
+  else if(flt==5) col.rgb=mix(col.rgb,vec3(g),.4)*vec3(1.1,1.,.85)+.05;
+  gl_FragColor=col;
+}`;
+function glInit(){
+  const c = document.createElement("canvas"); c.width = cv.width; c.height = cv.height;
+  const gl = c.getContext("webgl", {preserveDrawingBuffer:true}) || c.getContext("experimental-webgl", {preserveDrawingBuffer:true});
+  if(!gl) return null;
+  const mk = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); if(!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
+  try{
+    const pr = gl.createProgram(); gl.attachShader(pr, mk(gl.VERTEX_SHADER, VS)); gl.attachShader(pr, mk(gl.FRAGMENT_SHADER, FS));
+    gl.linkProgram(pr); gl.useProgram(pr);
+    const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+    const loc = gl.getAttribLocation(pr, "a"); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    const tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER].forEach(k => gl.texParameteri(gl.TEXTURE_2D, k, gl.LINEAR));
+    [gl.TEXTURE_WRAP_S, gl.TEXTURE_WRAP_T].forEach(k => gl.texParameteri(gl.TEXTURE_2D, k, gl.CLAMP_TO_EDGE));
+    const U = {}; ["c","r","s","asp","t","mir","crop","fx","flt"].forEach(n => U[n] = gl.getUniformLocation(pr, n));
+    return {c, gl, U};
+  }catch(e){ console.warn("WebGL shader မအောင်မြင်ပါ", e); return null; }
+}
+function drawFrame(ts){
+  cam.raf = requestAnimationFrame(drawFrame);
+  const v = cam.video; if(!v || v.readyState < 2 || !v.videoWidth) return;
+  const W = cv.width, H = cv.height, tp = cam.tpl;
+  const sz = +$("#sz").value, st = tp.st != null && !cam.stTouched ? tp.st : +$("#st").value;
+  const mirror = cam.facing === "user";
+  const va = v.videoWidth / v.videoHeight, ta = W / H;
+  let sx = 1, sy = 1, ox = 0, oy = 0;
+  if(va > ta){ sx = ta / va; ox = (1 - sx) / 2; } else { sy = va / ta; oy = (1 - sy) / 2; }
+  if(cam.gl){
+    const {gl, U, c} = cam.gl;
+    gl.viewport(0, 0, W, H);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, v);
+    gl.uniform2f(U.c, cam.ax, 1 - cam.ay); gl.uniform1f(U.r, sz); gl.uniform1f(U.s, st); gl.uniform1f(U.asp, W / H);
+    gl.uniform1f(U.t, ts / 1000); gl.uniform1f(U.mir, mirror ? 1 : 0); gl.uniform4f(U.crop, sx, sy, ox, oy);
+    gl.uniform1i(U.fx, tp.fx || 0); gl.uniform1i(U.flt, tp.flt || 0);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    cx.drawImage(c, 0, 0);
+  } else {
+    cx.save(); if(mirror){ cx.translate(W, 0); cx.scale(-1, 1); }
+    cx.filter = ["none","grayscale(1)","sepia(1)","hue-rotate(120deg) saturate(2)","contrast(1.6) saturate(1.8)","sepia(.5) contrast(1.1)"][tp.flt || 0];
+    cx.drawImage(v, ox * v.videoWidth, oy * v.videoHeight, sx * v.videoWidth, sy * v.videoHeight, 0, 0, W, H); cx.restore();
+  }
+  const R = sz * H, X = cam.ax * W, Y = cam.ay * H;
+  (tp.d || []).forEach(k => { cx.save(); DRAW[k](cx, X, Y, R); cx.restore(); });
+  const t = $("#capt").value.trim();
+  if(t){
+    cx.save(); let fs = W * .09; cx.font = `900 ${fs}px Impact,'Noto Sans Myanmar',sans-serif`;
+    while(cx.measureText(t).width > W * .92 && fs > 18){ fs -= 2; cx.font = `900 ${fs}px Impact,'Noto Sans Myanmar',sans-serif`; }
+    cx.textAlign = "center"; cx.textBaseline = "alphabetic"; cx.lineJoin = "round"; cx.lineWidth = fs * .16; cx.strokeStyle = "#000"; cx.fillStyle = "#fff";
+    cx.strokeText(t, W / 2, H * .92); cx.fillText(t, W / 2, H * .92); cx.restore();
+  }
+}
+async function camStart(){
+  camStop();
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:cam.facing, width:{ideal:1280}, height:{ideal:720}}, audio:false});
+    cam.stream = stream;
+    const v = h("video", {playsinline:true, muted:true, autoplay:true}); v.muted = true; v.srcObject = stream;
+    await v.play().catch(() => {}); cam.video = v;
+    if(!cam.gl) cam.gl = glInit();
+    cam.raf = requestAnimationFrame(drawFrame);
+    $("#camHint").hidden = false; setTimeout(() => $("#camHint").hidden = true, 5000);
+  }catch(e){
+    console.error(e);
+    toast("ကင်မရာ ဖွင့်မရပါ။ Browser တွင် ကင်မရာခွင့်ပြုချက် (permission) ပေးထားပါ။");
+  }
+}
+function camStop(){
+  cancelAnimationFrame(cam.raf);
+  if(cam.rec && cam.rec.state !== "inactive"){ cam.rec.onstop = null; try{ cam.rec.stop(); }catch(e){} }
+  clearInterval(cam.tick); $("#timer").hidden = true; $("#shut").classList.remove("rec");
+  if(cam.stream) cam.stream.getTracks().forEach(t => t.stop());
+  cam.stream = null; cam.video = null;
+}
+function updCost(){ $("#cost").textContent = "⭐ −" + COST[cam.mode === "photo" ? "image" : "video"]; }
+function camOpen(){
+  const gate = $("#camGate"), ui = $("#camUI");
+  if(!sb || !user){
+    camStop(); ui.hidden = true; gate.hidden = false;
+    gate.replaceChildren(!sb ? plainCard("Supabase မချိတ်ရသေးပါ", "ကင်မရာ post တင်ရန် config.js ကို အရင်ပြင်ပါ။")
+      : loginCard("ကင်မရာသုံးရန်နှင့် Post တင်ရန် အကောင့်ဝင်ပါ။ (အကောင့်သစ်ဖွင့်လျှင် ⭐ 30 ရပါမည်)"));
+    return;
+  }
+  gate.hidden = true; ui.hidden = false; setBal(); updCost(); loadWallet(); camStart();
+}
+function drawTpls(){
+  const box = $("#tpls"); box.replaceChildren();
+  TPL.forEach(tp => box.append(h("button", {class:"tp" + (tp === cam.tpl ? " on" : ""), onclick: () => { cam.tpl = tp; cam.stTouched = false; drawTpls(); }}, h("i", {}, tp.e), tp.n)));
+}
+drawTpls();
+$("#st").addEventListener("input", () => cam.stTouched = true);
+let dragging = false;
+function setAnchor(e){
+  // canvas ကို object-fit:contain ဖြင့် ပြထားသဖြင့် အမှန်တကယ်ပြသနေသော ဧရိယာအတွင်းသာ တွက်ချက်သည်
+  const r = cv.getBoundingClientRect(), ar = cv.width / cv.height;
+  let w = r.width, hh = r.height, ox = 0, oy = 0;
+  if(w / hh > ar){ w = hh * ar; ox = (r.width - w) / 2; } else { hh = w / ar; oy = (r.height - hh) / 2; }
+  cam.ax = Math.min(1, Math.max(0, (e.clientX - r.left - ox) / w));
+  cam.ay = Math.min(1, Math.max(0, (e.clientY - r.top - oy) / hh));
+}
+cv.addEventListener("pointerdown", e => { dragging = true; cv.setPointerCapture(e.pointerId); setAnchor(e); });
+cv.addEventListener("pointermove", e => { if(dragging) setAnchor(e); });
+cv.addEventListener("pointerup", () => dragging = false);
+$("#flip").onclick = () => { cam.facing = cam.facing === "user" ? "environment" : "user"; camStart(); };
+$("#modeBtn").onclick = () => {
+  cam.mode = cam.mode === "photo" ? "video" : "photo";
+  $("#modeBtn").textContent = cam.mode === "photo" ? "📷" : "🎥";
+  $("#shut").classList.toggle("vid", cam.mode === "video"); updCost();
+  toast(cam.mode === "photo" ? "ဓာတ်ပုံ mode" : "ဗီဒီယို mode (အများဆုံး ၃၀ စက္ကန့်)");
+};
+function lowPoints(cost){
+  const o = overlay("⭐ Point မလောက်ပါ", [h("div", {class:"card"}, h("h3", {}, `လိုအပ်: ⭐ ${cost} · ရှိသည်: ⭐ ${balance}`),
+    h("p", {}, `ဗီဒီယိုကြည့်ပြီး (${WATCH_SECS} စက္ကန့်လျှင် ⭐ +2) သို့မဟုတ် သူငယ်ချင်းကို Referral ဖြင့် ဖိတ်ပြီး (တစ်ဦးလျှင် ⭐ +50) Point ရယူနိုင်ပါသည်။`),
+    h("div", {style:"display:grid;gap:10px;margin-top:10px"},
+      h("button", {class:"btn pink", onclick: () => { o.close(); go("video"); }}, "ဗီဒီယိုကြည့်ပြီး ရယူမည်"),
+      h("button", {class:"btn alt", onclick: () => { o.close(); go("profile"); }}, "Referral link ရယူမည်")))]);
+}
+// ကင်မရာသုံးခွင့် (credit) ဝယ်ယူခြင်း – server မှ Point ဖြတ်သည်
+async function needCredit(kind){
+  if(cam.credit && cam.credit.kind === kind) return true;
+  const cost = COST[kind];
+  if(balance < cost){ await loadWallet(); if(balance < cost){ lowPoints(cost); return false; } }
+  const {data, error} = await sb.rpc("buy_capture", {p_kind: kind});
+  if(error){
+    if(/insufficient/.test(error.message)){ await loadWallet(); lowPoints(cost); } else toast("မအောင်မြင်ပါ - " + error.message);
+    return false;
+  }
+  cam.credit = {id: data, kind}; await loadWallet(); toast("⭐ −" + cost); return true;
+}
+$("#shut").onclick = async () => {
+  if(!cam.stream) return;
+  if(cam.mode === "photo"){
+    if(!(await needCredit("image"))) return;
+    cv.toBlob(b => b && showPreview(b, "image"), "image/jpeg", .9); return;
+  }
+  if(cam.rec && cam.rec.state === "recording"){ cam.rec.stop(); return; }
+  if(!(await needCredit("video"))) return;
+  let mic = null;
+  try{ mic = await navigator.mediaDevices.getUserMedia({audio:true}); }catch(e){ toast("မိုက်ခွင့်မရပါ၊ အသံမပါဘဲ ရိုက်ပါမည်"); }
+  const out = cv.captureStream(30); if(mic) mic.getAudioTracks().forEach(t => out.addTrack(t));
+  const mt = ["video/webm;codecs=vp9,opus","video/webm;codecs=vp8,opus","video/webm","video/mp4"].find(t => window.MediaRecorder && MediaRecorder.isTypeSupported(t));
+  if(!mt){ toast("ဤ browser တွင် ဗီဒီယိုရိုက်ခြင်း မထောက်ပံ့ပါ"); return; }
+  cam.chunks = []; cam.rec = new MediaRecorder(out, {mimeType: mt, videoBitsPerSecond: 2500000});
+  cam.rec.ondataavailable = e => e.data.size && cam.chunks.push(e.data);
+  cam.rec.onstop = () => {
+    clearInterval(cam.tick); $("#timer").hidden = true; $("#shut").classList.remove("rec");
+    if(mic) mic.getTracks().forEach(t => t.stop());
+    showPreview(new Blob(cam.chunks, {type: mt.split(";")[0]}), "video");
+  };
+  cam.rec.start(250); cam.t0 = Date.now(); $("#shut").classList.add("rec"); $("#timer").hidden = false;
+  cam.tick = setInterval(() => {
+    const s = Math.floor((Date.now() - cam.t0) / 1000); $("#timer").textContent = "● " + Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+    if(s >= 30 && cam.rec.state === "recording") cam.rec.stop();
+  }, 250);
+};
+
+function showPreview(blob, kind){
+  camStop();
+  const url = URL.createObjectURL(blob);
+  const media = kind === "image" ? h("img", {src:url, class:"player", style:"aspect-ratio:auto;max-height:55vh;object-fit:contain", alt:""})
+    : h("video", {src:url, class:"player", style:"aspect-ratio:auto;max-height:55vh", controls:true, playsinline:true, autoplay:true, loop:true});
+  const cap = h("input", {placeholder:"စာတန်းရေးရန် (မထည့်လည်းရ)", maxlength:140});
+  const sel = h("select", {}, CATS.slice(2).map(([id, l]) => h("option", {value:id}, l)));
+  const ok = h("input", {type:"checkbox", style:"width:auto;margin-top:3px"});
+  const post = h("button", {class:"btn pink", onclick: async () => {
+    if(!ok.checked){ toast("အတည်ပြုချက်ကို အမှန်ခြစ်ပါ"); return; }
+    if(!cam.credit || cam.credit.kind !== kind){ toast("ကင်မရာသုံးခွင့် မရှိပါ၊ ပြန်ရိုက်ပါ"); return; }
+    post.disabled = true; post.textContent = "တင်နေသည်…";
+    try{
+      const ext = kind === "image" ? "jpg" : (blob.type.includes("mp4") ? "mp4" : "webm");
+      const path = `${user.id}/${Date.now()}.${ext}`;
+      const up = await sb.storage.from("posts").upload(path, blob, {contentType: blob.type || (kind === "image" ? "image/jpeg" : "video/webm")});
+      if(up.error) throw up.error;
+      const pub = sb.storage.from("posts").getPublicUrl(path).data.publicUrl;
+      const ins = await sb.rpc("publish_post", {p_credit: cam.credit.id, p_caption: cap.value.trim() || null, p_category: sel.value, p_url: pub, p_type: kind});
+      if(ins.error) throw ins.error;
+      cam.credit = null;
+      go("home"); o.close(); URL.revokeObjectURL(url); toast("တင်ပြီးပါပြီ! ၂၄ နာရီကြာ ပေါ်နေပါမည်");
+    }catch(e){ console.error(e); toast("မအောင်မြင်ပါ - " + (e.message || e)); post.disabled = false; post.textContent = "၂၄ နာရီ Post တင်မည်"; }
+  }}, "၂၄ နာရီ Post တင်မည်");
+  const save = h("a", {class:"btn alt", href:url, download:"openvideo-" + Date.now() + (kind === "image" ? ".jpg" : (blob.type.includes("mp4") ? ".mp4" : ".webm")), style:"text-align:center;text-decoration:none"}, "ဖုန်းထဲသိမ်းမည်");
+  const o = overlay("ကြည့်ရှုပြီး တင်ရန်", [media, h("div", {style:"display:grid;gap:10px;margin-top:12px"}, cap, sel,
+    h("label", {style:"display:flex;gap:8px;font-size:.82rem;color:var(--mu);line-height:1.5"}, ok, "ဤအကြောင်းအရာသည် ကျွန်ုပ်ကိုယ်တိုင်ဖန်တီးထားခြင်းဖြစ်ပြီး ဥပဒေနှင့်ညီညွတ်ကြောင်း၊ သူတစ်ပါး၏ မူပိုင်ခွင့်/ကိုယ်ရေးကိုယ်တာကို မထိခိုက်ကြောင်း အတည်ပြုပါသည်။"),
+    post, save, h("button", {class:"btn alt", onclick: () => { o.close(); URL.revokeObjectURL(url); }}, "ပယ်ဖျက်ပြီး ပြန်ရိုက်မည် (Point ပြန်မဖြတ်ပါ)"))],
+    () => { if(tab === "camera" && !cam.stream) camStart(); });
+}
+
+/* ---------- boot ---------- */
+go("home");
+</script>
+</body>
+</html>
